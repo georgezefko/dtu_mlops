@@ -52,7 +52,7 @@ different projects does not cross-contaminate each other.
 
 2. Create a new conda environment for the remaining of the exercises using `conda create -n "my_environment"`
 
-3. Which commando gives you a list of the packages installed in the current environment (HINT: check the
+3. Which command gives you a list of the packages installed in the current environment (HINT: check the
    `conda_cheatsheet.pdf` file). How do you easily export this list to a text file?
 
 ## Git 
