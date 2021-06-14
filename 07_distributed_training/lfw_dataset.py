@@ -1,13 +1,15 @@
 """
 LFW dataloading
 """
-import torch
-from torch.utils.data import Dataset, DataLoader
-from PIL import Image
-from torchvision import transforms
 import argparse
 import time
+
 import numpy as np
+import torch
+from PIL import Image
+from torch.utils.data import DataLoader, Dataset
+from torchvision import transforms
+
 
 class LFWDataset(Dataset):
     def __init__(self, path_to_folder: str, transform) -> None:
@@ -31,7 +33,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     lfw_trans = transforms.Compose([
-        transforms.RandomAffine(5, (10, 10), (0.5, 2.0)),
+        transforms.RandomAffine(5, (0.1, 0.1), (0.5, 2.0)),
         transforms.ToTensor()
     ])
     
@@ -39,25 +41,26 @@ if __name__ == '__main__':
     dataset = LFWDataset(args.path_to_folder, lfw_trans)
     
     # Define dataloader
-    dataloader = DataLoader(dataset, batch_size=16, shuffle=False,
+    # Note we need a high batch size to see an effect of using many
+    # number of workers
+    dataloader = DataLoader(dataset, batch_size=512, shuffle=False,
                             num_workers=args.num_workers)
     
     if args.visualize_batch:
         # TODO: visualize a batch of images
         pass
         
-    if args.timing:
+    if args.get_timing:
         # lets do so repetitions
         res = [ ]
         for _ in range(5):
             start = time.time()
-            for batch in dataloader:
-                # simulate that we do something with the batch
-                time.pause(0.2)
+            for batch_idx, batch in enumerate(dataloader):
+                if batch_idx > 100:
+                    break
             end = time.time()
-            
+
             res.append(end - start)
             
         res = np.array(res)
         print('Timing: {np.mean(res)}+-{np.std(res)}')
-        
