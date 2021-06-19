@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import KFold, ParameterGrid, train_test_split
 
 np.random.seed(123)
-OPTUNA = False
+OPTUNA = True
 
 data = datasets.load_digits()
 X,y = data['data'], data['target']
@@ -60,12 +60,32 @@ else:
     import optuna
     
     def objective(trial):
+        kf = KFold(n_splits=5)
         # fill in this. Given a trial it should
         # 1. suggest a set of hyperparameters (HINT: use trial.suggest_discrete_uniform )
+        _n_estimators = trial.suggest_discrete_uniform("n_estimators", 50, 200,10)
+        _max_depth = trial.suggest_discrete_uniform("max_depth", 5, 20,5)
+        
         # 2. train a random forest using the hyperparameters
+        c = RandomForestClassifier(n_estimators = int(_n_estimators), max_depth = _max_depth )
+        scores = []
+        for train_index, val_index in kf.split(X_train):
+            x_t, x_v = X_train[train_index], X_train[val_index]
+            y_t, y_v = y_train[train_index], y_train[val_index]
+    
+            c.fit(x_t, y_t)
+        
+            preds = c.predict(x_v)
+    
+            acc = accuracy_score(y_v, preds)
+
+            scores.append(acc)
+        scores_mean = np.mean(scores)
+        # #     
+
         # 3. evaluate the trained random forest
-        return val_acc
+        return scores_mean
     
     # call the optimizer
     study = optuna.create_study()
-    study.optimize(objective, n_trials=100) 
+    study.optimize(objective, n_trials=10) 
