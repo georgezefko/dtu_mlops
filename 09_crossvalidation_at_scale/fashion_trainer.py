@@ -9,6 +9,13 @@ from torchvision.datasets import FashionMNIST
 from torch.utils.data import random_split
 import optuna
 import numpy as np
+from optuna.visualization import plot_contour
+from optuna.visualization import plot_intermediate_values
+from optuna.visualization import plot_optimization_history
+from optuna.visualization import plot_parallel_coordinate
+from optuna.visualization import plot_param_importances
+from optuna.visualization import plot_slice
+
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -140,8 +147,8 @@ def train_and_test(lr,batch_size,features,dropout):
                 iteration_list.append(count)
                 accuracy_list.append(accuracy)
             
-            if not (count % 500):
-                print("Iteration: {}, Loss: {}, Accuracy: {}%".format(count, loss.data, accuracy))
+            # if not (count % 500):
+            #     print("Iteration: {}, Loss: {}, Accuracy: {}%".format(count, loss.data, accuracy))
     return np.mean(accuracy_list)
             
                 
@@ -178,12 +185,34 @@ def objective(trial):
 if __name__ == "__main__":
     pruner = optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=30, interval_steps=10)
     study = optuna.create_study(direction="maximize",pruner = pruner)
+    #study = optuna.load_study( study_name="mlops_exercise", storage="mysql://root@localhost/example" )
     study.optimize(objective, n_trials=3) 
-    study.best_trial
-    optuna.visualization.plot_optimization_history(study)
-    optuna.visualization.plot_param_importances(study) ## this is important to figure out which hp is important
-    optuna.visualization.plot_slice(study)   ## this gives a clear picture
-    optuna.visualization.plot_parallel_coordinate(study)
+    # Visualize the optimization history.
+    plot_optimization_history(study).show()
+
+    # Visualize the learning curves of the trials.
+    plot_intermediate_values(study).show()
+
+    # Visualize high-dimensional parameter relationships.
+    plot_parallel_coordinate(study).show()
+
+    # Select parameters to visualize.
+    plot_parallel_coordinate(study, params=["lr", "features","dropout", "batch_size"]).show()
+
+    # Visualize hyperparameter relationships.
+    plot_contour(study).show()
+
+    # Select parameters to visualize.
+    plot_contour(study, params=["lr", "features","dropout", "batch_size"]).show()
+
+    # Visualize individual hyperparameters.
+    plot_slice(study).show()
+
+    # Select parameters to visualize.
+    plot_slice(study, params=["lr", "features","dropout", "batch_size"]).show()
+
+    # Visualize parameter importances.
+    plot_param_importances(study).show()
 
 
 
